@@ -48,8 +48,10 @@ _GUVXI2C_CHIP_ID = const(0x62)
 _GUVXI2C_REG_CHIPID = const(0x00)
 _GUVXI2C_REG_MODE = const(0x01)
 _GUVXI2C_REG_RESUV = const(0x04)
-_GUVXI2C_REG_RANGEUV = const(0x07)
+_GUVXI2C_REG_RANGEUVA = const(0x05)
+_GUVXI2C_REG_RANGEUVB = const(0x07)
 _GUVXI2C_REG_RESET = const(0x0B)
+_GUVXI2C_REG_UVALSB = const(0x15)
 _GUVXI2C_REG_UVBLSB = const(0x17)
 _GUVXI2C_REG_NVMCTRL = const(0x30)
 _GUVXI2C_REG_NVMMSB = const(0x31)
@@ -67,10 +69,9 @@ _measure_periods = (800, 400, 200, 100)
 # valid measure ranges
 _measure_ranges = (1, 2, 4, 8, 16, 32, 64, 128)
 
-
-class GUVB_C31SM:
-    """Driver for the GUVB-C31SM UV light sensor.
-    :param ~busio.I2C i2c_bus: The I2C bus the  GUVB-C31SM is connected to.
+class GUVX_I2C:
+    """Base river for the GUVA or GUVB I2C UV light sensor.
+    :param ~busio.I2C i2c_bus: The I2C bus the  GUVX is connected to.
     :param address: The I2C device address. Defaults to :const:`0x39`
     """
 
@@ -79,21 +80,23 @@ class GUVB_C31SM:
     _oper = RWBits(2, _GUVXI2C_REG_MODE, 4)
     _pmode = RWBits(2, _GUVXI2C_REG_MODE, 0)
     _period = RWBits(2, _GUVXI2C_REG_RESUV, 0)  # only 2 bottom bits used!!!
-    _range_uvb = RWBits(3, _GUVXI2C_REG_RANGEUV, 0)
+    _range_uvb = RWBits(3, _GUVXI2C_REG_RANGEUVB, 0)
+    _range_uva = RWBits(3, _GUVXI2C_REG_RANGEUVA, 0)
     _nvm_ctrl = UnaryStruct(_GUVXI2C_REG_NVMCTRL, "<B")
     _nvm_data = ROUnaryStruct(_GUVXI2C_REG_NVMMSB, ">H") # note endianness
     
     _uvb = ROUnaryStruct(_GUVXI2C_REG_UVBLSB, "<H")
+    _uva = ROUnaryStruct(_GUVXI2C_REG_UVALSB, "<H")
         
     def __init__(self, i2c_bus, address=_GUVXI2C_I2CADDR_DEFAULT):
         # pylint: disable=no-member
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
         if self._chip_id != _GUVXI2C_CHIP_ID:
-            raise RuntimeError("Failed to find GUVB-C31SM - check your wiring!")
+            raise RuntimeError("Failed to find GUVX I2C sensor - check your wiring!")
 
         self.reset()
         
-        self.UVB_mode = True # turn on UVB reading!
+        self.UV_mode = True # turn on UV reading!
         self.power_mode = GUVXI2C_PMODE_NORMAL # put into normal power
         self.measure_period = 100 # set default measure period 100ms
         self.range = 8 # set default range 8x
@@ -101,7 +104,7 @@ class GUVB_C31SM:
         self._nvm_ctrl = 0x0A # read offset first
         self._offset = self._nvm_data
         self._nvm_ctrl = 0x0B # read B_Scale second
-        self._b_scale = self._nvm_data
+        self._scale = self._nvm_data
 
     def reset(self):
         # It should be noted that applying SOFT_RESET should be done only
@@ -109,14 +112,14 @@ class GUVB_C31SM:
         self.power_mode = GUVXI2C_PMODE_NORMAL
         self._reset = 0xA5  # special reset signal
         time.sleep(0.05)
-        
+
     @property
-    def UVB_mode(self):
-        """Whether or not UVB-reading mode is enabled"""
+    def UV_mode(self):
+        """Whether or not UV-reading mode is enabled"""
         return self._oper == 2 # see datasheet table 7.2
 
-    @UVB_mode.setter
-    def UVB_mode(self, enabled):
+    @UV_mode.setter
+    def UV_mode(self, enabled):
         # see datasheet table 7.2
         if enabled:
             self._oper = 2
@@ -149,8 +152,8 @@ class GUVB_C31SM:
         if not period in _measure_periods:
             raise RuntimeError("Invalid period: must be 100, 200, 400 or 800 (ms)")
         self._period = _measure_periods.index(period)
-
-
+  
+class GUVB_C31SM(GUVX_I2C):
     @property
     def range(self):
         """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""
@@ -163,7 +166,6 @@ class GUVB_C31SM:
             raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
         self._range_uvb = _measure_ranges.index(multiple)
 
-
     @property
     def uvb(self):
         """The raw UV B 16-bit data"""
@@ -173,4 +175,32 @@ class GUVB_C31SM:
     def uv_index(self):
         """Calculated using offset and b-scale"""
         # GUVB-C31SM UVI = (B value *0.8 )/(B_scale) in app note
-        return (self.uvb  / self.range * 0.8) / self._b_scale
+        return (self.uvb  / self.range * 0.8) / self._scale
+
+
+class GUVA_C32SM(GUVX_I2C):
+    """untested!"""
+    
+    @property
+    def range(self):
+        """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""
+        return _measure_ranges[self._range_uva]
+
+    @range.setter
+    def range(self, multiple):
+        # see datasheet table 7.6
+        if not multiple in _measure_ranges:
+            raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
+        self._range_uva = _measure_ranges.index(multiple)
+
+    @property
+    def uva(self):
+        """The raw UV A 16-bit data"""
+        return self._uva
+
+    @property
+    def uv_index(self):
+        """Calculated using offset and b-scale"""
+        # GUVA-C32SM UVI = (A value * 2.5 - self._offset )/(A_scale)
+        # in app note
+        return ((self.uva / self.range * 2.5) - self._offset) / self._scale
