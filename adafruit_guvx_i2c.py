@@ -46,6 +46,7 @@ _GUVXI2C_REG_MODE = const(0x01)
 _GUVXI2C_REG_RESUV = const(0x04)
 _GUVXI2C_REG_RANGEUVA = const(0x05)
 _GUVXI2C_REG_RANGEUVB = const(0x07)
+_GUVXI2C_REG_MODECTL = const(0x0A)
 _GUVXI2C_REG_RESET = const(0x0B)
 _GUVXI2C_REG_UVALSB = const(0x15)
 _GUVXI2C_REG_UVBLSB = const(0x17)
@@ -65,6 +66,9 @@ _measure_periods = (800, 400, 200, 100)
 # valid measure ranges
 _measure_ranges = (1, 2, 4, 8, 16, 32, 64, 128)
 
+# valid sleep durations
+_sleep_durations = (2, 4, 8, 16, 32, 64, 128, 256)
+
 class GUVX_I2C:
     """Base river for the GUVA or GUVB I2C UV light sensor.
     :param ~busio.I2C i2c_bus: The I2C bus the  GUVX is connected to.
@@ -76,6 +80,7 @@ class GUVX_I2C:
     _oper = RWBits(2, _GUVXI2C_REG_MODE, 4)
     _pmode = RWBits(2, _GUVXI2C_REG_MODE, 0)
     _period = RWBits(2, _GUVXI2C_REG_RESUV, 0)  # only 2 bottom bits used!!!
+    _sleep_duration = RWBits(2, _GUVXI2C_REG_MODECTL, 4)
     _range_uvb = RWBits(3, _GUVXI2C_REG_RANGEUVB, 0)
     _range_uva = RWBits(3, _GUVXI2C_REG_RANGEUVA, 0)
     _nvm_ctrl = UnaryStruct(_GUVXI2C_REG_NVMCTRL, "<B")
@@ -148,7 +153,20 @@ class GUVX_I2C:
         if not period in _measure_periods:
             raise RuntimeError("Invalid period: must be 100, 200, 400 or 800 (ms)")
         self._period = _measure_periods.index(period)
-  
+
+    @property
+    def sleep_duration(self):
+        """Sleep duration in low power mode, can be:
+        2, 4, 8, 16, 32, 64, 128, or 256 times"""
+        return _sleep_durations[self._sleep_duration]
+
+    @sleep_duration.setter
+    def sleep_duration(self, duration):
+        # see datasheet table 7.7
+        if not duration in _sleep_durations:
+            raise RuntimeError("Invalid range: must be 2, 4, 8, 16, 32, 64, 128 or 256 x")
+        self._sleep_duration = _sleep_durations.index(duration)
+
 class GUVB_C31SM(GUVX_I2C):
     @property
     def range(self):
