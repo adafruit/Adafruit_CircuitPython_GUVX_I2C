@@ -32,7 +32,6 @@ import time
 from micropython import const
 from adafruit_bus_device import i2c_device
 from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
-from adafruit_register.i2c_bit import RWBit
 from adafruit_register.i2c_bits import RWBits
 
 __version__ = "0.0.0+auto.0"
