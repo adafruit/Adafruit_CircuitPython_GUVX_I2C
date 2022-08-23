@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022 ladyada for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
+
 """
 `adafruit_guvx_i2c`
 ================================================================================
@@ -69,6 +70,7 @@ _measure_ranges = (1, 2, 4, 8, 16, 32, 64, 128)
 # valid sleep durations
 _sleep_durations = (2, 4, 8, 16, 32, 64, 128, 256)
 
+
 class GUVX_I2C:
     """Base river for the GUVA or GUVB I2C UV light sensor.
     :param ~busio.I2C i2c_bus: The I2C bus the  GUVX is connected to.
@@ -84,7 +86,7 @@ class GUVX_I2C:
     _range_uvb = RWBits(3, _GUVXI2C_REG_RANGEUVB, 0)
     _range_uva = RWBits(3, _GUVXI2C_REG_RANGEUVA, 0)
     _nvm_ctrl = UnaryStruct(_GUVXI2C_REG_NVMCTRL, "<B")
-    _nvm_data = ROUnaryStruct(_GUVXI2C_REG_NVMMSB, ">H") # note endianness
+    _nvm_data = ROUnaryStruct(_GUVXI2C_REG_NVMMSB, ">H")  # note endianness
 
     _uvb = ROUnaryStruct(_GUVXI2C_REG_UVBLSB, "<H")
     _uva = ROUnaryStruct(_GUVXI2C_REG_UVALSB, "<H")
@@ -97,19 +99,19 @@ class GUVX_I2C:
 
         self.reset()
 
-        self.UV_mode = True # turn on UV reading!
-        self.power_mode = GUVXI2C_PMODE_NORMAL # put into normal power
-        self.measure_period = 100 # set default measure period 100ms
-        self.range = 8 # set default range 8x
+        self.UV_mode = True  # turn on UV reading!
+        self.power_mode = GUVXI2C_PMODE_NORMAL  # put into normal power
+        self.measure_period = 100  # set default measure period 100ms
+        self.range = 8  # set default range 8x
 
-        self._nvm_ctrl = 0x0A # read offset first
+        self._nvm_ctrl = 0x0A  # read offset first
         self._offset = self._nvm_data
-        self._nvm_ctrl = 0x0B # read B_Scale second
+        self._nvm_ctrl = 0x0B  # read B_Scale second
         self._scale = self._nvm_data
 
     def reset(self):
         # It should be noted that applying SOFT_RESET should be done only
-        # when POWER_MODE=¡¯00¡¯.
+        # when POWER_MODE=ï¿½ï¿½00ï¿½ï¿½.
         self.power_mode = GUVXI2C_PMODE_NORMAL
         self._reset = 0xA5  # special reset signal
         time.sleep(0.05)
@@ -117,7 +119,7 @@ class GUVX_I2C:
     @property
     def UV_mode(self):
         """Whether or not UV-reading mode is enabled"""
-        return self._oper == 2 # see datasheet table 7.2
+        return self._oper == 2  # see datasheet table 7.2
 
     @UV_mode.setter
     def UV_mode(self, enabled):
@@ -137,8 +139,12 @@ class GUVX_I2C:
     @power_mode.setter
     def power_mode(self, mode):
         # see datasheet table 7.3
-        if not mode in (GUVXI2C_PMODE_NORMAL, GUVXI2C_PMODE_LOWPOWER,
-                        GUVXI2C_PMODE_AUTOSHUT, GUVXI2C_PMODE_SHUTDOWN):
+        if not mode in (
+            GUVXI2C_PMODE_NORMAL,
+            GUVXI2C_PMODE_LOWPOWER,
+            GUVXI2C_PMODE_AUTOSHUT,
+            GUVXI2C_PMODE_SHUTDOWN,
+        ):
             raise RuntimeError("Invalid power mode")
         self._pmode = mode
 
@@ -164,8 +170,11 @@ class GUVX_I2C:
     def sleep_duration(self, duration):
         # see datasheet table 7.7
         if not duration in _sleep_durations:
-            raise RuntimeError("Invalid range: must be 2, 4, 8, 16, 32, 64, 128 or 256 x")
+            raise RuntimeError(
+                "Invalid range: must be 2, 4, 8, 16, 32, 64, 128 or 256 x"
+            )
         self._sleep_duration = _sleep_durations.index(duration)
+
 
 class GUVB_C31SM(GUVX_I2C):
     @property
@@ -177,7 +186,9 @@ class GUVB_C31SM(GUVX_I2C):
     def range(self, multiple):
         # see datasheet table 7.6
         if not multiple in _measure_ranges:
-            raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
+            raise RuntimeError(
+                "Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x"
+            )
         self._range_uvb = _measure_ranges.index(multiple)
 
     @property
@@ -189,7 +200,7 @@ class GUVB_C31SM(GUVX_I2C):
     def uv_index(self):
         """Calculated using offset and b-scale"""
         # GUVB-C31SM UVI = (B value *0.8 )/(B_scale) in app note
-        return (self.uvb  / self.range * 0.8) / self._scale
+        return (self.uvb / self.range * 0.8) / self._scale
 
 
 class GUVA_C32SM(GUVX_I2C):
@@ -204,7 +215,9 @@ class GUVA_C32SM(GUVX_I2C):
     def range(self, multiple):
         # see datasheet table 7.6
         if not multiple in _measure_ranges:
-            raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
+            raise RuntimeError(
+                "Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x"
+            )
         self._range_uva = _measure_ranges.index(multiple)
 
     @property
