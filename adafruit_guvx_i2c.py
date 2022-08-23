@@ -99,7 +99,7 @@ class GUVX_I2C:
 
         self.reset()
 
-        self.UV_mode = True  # turn on UV reading!
+        self.uv_mode = True  # turn on UV reading!
         self.power_mode = GUVXI2C_PMODE_NORMAL  # put into normal power
         self.measure_period = 100  # set default measure period 100ms
         self.range = 8  # set default range 8x
@@ -117,12 +117,12 @@ class GUVX_I2C:
         time.sleep(0.05)
 
     @property
-    def UV_mode(self):
+    def uv_mode(self):
         """Whether or not UV-reading mode is enabled"""
         return self._oper == 2  # see datasheet table 7.2
 
-    @UV_mode.setter
-    def UV_mode(self, enabled):
+    @uv_mode.setter
+    def uv_mode(self, enabled):
         # see datasheet table 7.2
         if enabled:
             self._oper = 2
