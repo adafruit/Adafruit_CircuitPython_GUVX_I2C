@@ -72,9 +72,10 @@ _sleep_durations = (2, 4, 8, 16, 32, 64, 128, 256)
 
 # pylint: disable=too-many-instance-attributes
 class GUVX_I2C:
-    """Base river for the GUVA or GUVB I2C UV light sensor.
+    """Base driver for the GUVA or GUVB I2C UV light sensor.
+
     :param ~busio.I2C i2c_bus: The I2C bus the  GUVX is connected to.
-    :param address: The I2C device address. Defaults to :const:`0x39`
+    :param int address: The I2C device address. Defaults to :const:`0x39`
     """
 
     _chip_id = ROUnaryStruct(_GUVXI2C_REG_CHIPID, "<B")
@@ -110,6 +111,7 @@ class GUVX_I2C:
         self._scale = self._nvm_data
 
     def reset(self):
+        """Perform a soft reset"""
         # It should be noted that applying SOFT_RESET should be done only
         # when POWER_MODE=��00��.
         self.power_mode = GUVXI2C_PMODE_NORMAL
@@ -132,8 +134,10 @@ class GUVX_I2C:
     @property
     def power_mode(self):
         """One of four power modes available:
+
         GUVXI2C_PMODE_NORMAL, GUVXI2C_PMODE_LOWPOWER, GUVXI2C_PMODE_AUTOSHUT,
-        or GUVXI2C_PMODE_SHUTDOWN"""
+        or GUVXI2C_PMODE_SHUTDOWN
+        """
         return self._pmode
 
     @power_mode.setter
@@ -150,7 +154,10 @@ class GUVX_I2C:
 
     @property
     def measure_period(self):
-        """One of four measuring periods in milliseconds: 100, 200, 400 or 800ms"""
+        """One of four measuring periods in milliseconds:
+
+        100, 200, 400 or 800ms
+        """
         return _measure_periods[self._period]
 
     @measure_period.setter
@@ -163,7 +170,9 @@ class GUVX_I2C:
     @property
     def sleep_duration(self):
         """Sleep duration in low power mode, can be:
-        2, 4, 8, 16, 32, 64, 128, or 256 times"""
+
+        2, 4, 8, 16, 32, 64, 128, or 256 times
+        """
         return _sleep_durations[self._sleep_duration]
 
     @sleep_duration.setter
@@ -177,6 +186,8 @@ class GUVX_I2C:
 
 
 class GUVB_C31SM(GUVX_I2C):
+    """Driver for the GUVB-C31SM sensor"""
+
     @property
     def range(self):
         """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""
@@ -204,7 +215,10 @@ class GUVB_C31SM(GUVX_I2C):
 
 
 class GUVA_C32SM(GUVX_I2C):
-    """untested!"""
+    """Driver for the GUVA-C32SM sensor
+
+    Note: untested!
+    """
 
     @property
     def range(self):
