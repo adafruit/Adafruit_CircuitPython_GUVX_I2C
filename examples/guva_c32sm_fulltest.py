@@ -9,6 +9,7 @@ import adafruit_guvx_i2c
 
 i2c = board.I2C()  # uses board.SCL and board.SDA
 from adafruit_debug_i2c import DebugI2C
+
 debug_i2c = DebugI2C(i2c)
 
 sensor = adafruit_guvx_i2c.GUVA_C32SM(i2c)
@@ -28,4 +29,3 @@ print("Sensor range is", sensor.range, "x")
 while True:
     print("UVA:", sensor.uva, "   UV index:", sensor.uv_index)
     time.sleep(1)
-

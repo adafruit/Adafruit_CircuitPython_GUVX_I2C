@@ -31,4 +31,3 @@ print("Sensor range is", sensor.range, "x")
 while True:
     print("UVB:", sensor.uvb, "   UV index:", sensor.uv_index)
     time.sleep(1)
-

@@ -53,7 +53,7 @@ _GUVXI2C_REG_UVBLSB = const(0x17)
 _GUVXI2C_REG_NVMCTRL = const(0x30)
 _GUVXI2C_REG_NVMMSB = const(0x31)
 _GUVXI2C_REG_NVMLSB = const(0x32)
-    
+
 # four power modes!
 GUVXI2C_PMODE_NORMAL = const(0x00)
 GUVXI2C_PMODE_LOWPOWER = const(0x01)
@@ -85,10 +85,10 @@ class GUVX_I2C:
     _range_uva = RWBits(3, _GUVXI2C_REG_RANGEUVA, 0)
     _nvm_ctrl = UnaryStruct(_GUVXI2C_REG_NVMCTRL, "<B")
     _nvm_data = ROUnaryStruct(_GUVXI2C_REG_NVMMSB, ">H") # note endianness
-    
+
     _uvb = ROUnaryStruct(_GUVXI2C_REG_UVBLSB, "<H")
     _uva = ROUnaryStruct(_GUVXI2C_REG_UVALSB, "<H")
-        
+
     def __init__(self, i2c_bus, address=_GUVXI2C_I2CADDR_DEFAULT):
         # pylint: disable=no-member
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
@@ -96,7 +96,7 @@ class GUVX_I2C:
             raise RuntimeError("Failed to find GUVX I2C sensor - check your wiring!")
 
         self.reset()
-        
+
         self.UV_mode = True # turn on UV reading!
         self.power_mode = GUVXI2C_PMODE_NORMAL # put into normal power
         self.measure_period = 100 # set default measure period 100ms
@@ -194,7 +194,7 @@ class GUVB_C31SM(GUVX_I2C):
 
 class GUVA_C32SM(GUVX_I2C):
     """untested!"""
-    
+
     @property
     def range(self):
         """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""

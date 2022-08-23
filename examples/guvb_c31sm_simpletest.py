@@ -15,4 +15,3 @@ sensor.range = 1
 while True:
     print("UVB:", sensor.uvb)
     time.sleep(1)
-
