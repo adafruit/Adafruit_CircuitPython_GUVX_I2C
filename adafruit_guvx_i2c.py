@@ -71,6 +71,7 @@ _measure_ranges = (1, 2, 4, 8, 16, 32, 64, 128)
 _sleep_durations = (2, 4, 8, 16, 32, 64, 128, 256)
 
 
+# pylint: disable=too-many-instance-attributes
 class GUVX_I2C:
     """Base river for the GUVA or GUVB I2C UV light sensor.
     :param ~busio.I2C i2c_bus: The I2C bus the  GUVX is connected to.
