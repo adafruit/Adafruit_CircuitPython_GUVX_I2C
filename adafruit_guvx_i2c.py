@@ -17,8 +17,7 @@ Implementation Notes
 
 **Hardware:**
 
-.. todo:: Add links to any specific hardware product page(s), or category page(s).
-  Use unordered list & hyperlink rST inline format: "* `Link Text <url>`_"
+* `GUVx UV light sensor <http://www.adafruit.com/products/5609>`_
 
 **Software and Dependencies:**
 
