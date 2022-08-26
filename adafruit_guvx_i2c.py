@@ -28,7 +28,6 @@ Implementation Notes
 """
 
 import time
-from tkinter.messagebox import NO
 from micropython import const
 from adafruit_bus_device import i2c_device
 from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
