@@ -33,6 +33,12 @@ from adafruit_bus_device import i2c_device
 from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
 from adafruit_register.i2c_bits import RWBits
 
+try:
+    import typing  # pylint: disable=unused-import
+    from busio import I2C
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_GUVX_I2C.git"
 
@@ -91,7 +97,7 @@ class GUVX_I2C:
     _uvb = ROUnaryStruct(_GUVXI2C_REG_UVBLSB, "<H")
     _uva = ROUnaryStruct(_GUVXI2C_REG_UVALSB, "<H")
 
-    def __init__(self, i2c_bus, address=_GUVXI2C_I2CADDR_DEFAULT):
+    def __init__(self, i2c_bus: I2C, address: int = _GUVXI2C_I2CADDR_DEFAULT) -> None:
         # pylint: disable=no-member
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
         if self._chip_id != _GUVXI2C_CHIP_ID:
@@ -109,7 +115,7 @@ class GUVX_I2C:
         self._nvm_ctrl = 0x0B  # read B_Scale second
         self._scale = self._nvm_data
 
-    def reset(self):
+    def reset(self) -> None:
         """Perform a soft reset"""
         # It should be noted that applying SOFT_RESET should be done only
         # when POWER_MODE=��00��.
@@ -118,12 +124,12 @@ class GUVX_I2C:
         time.sleep(0.05)
 
     @property
-    def uv_mode(self):
+    def uv_mode(self) -> bool:
         """Whether or not UV-reading mode is enabled"""
         return self._oper == 2  # see datasheet table 7.2
 
     @uv_mode.setter
-    def uv_mode(self, enabled):
+    def uv_mode(self, enabled: bool) -> None:
         # see datasheet table 7.2
         if enabled:
             self._oper = 2
@@ -131,7 +137,7 @@ class GUVX_I2C:
             self._oper = 0
 
     @property
-    def power_mode(self):
+    def power_mode(self) -> int:
         """One of four power modes available:
 
         GUVXI2C_PMODE_NORMAL, GUVXI2C_PMODE_LOWPOWER, GUVXI2C_PMODE_AUTOSHUT,
@@ -140,7 +146,7 @@ class GUVX_I2C:
         return self._pmode
 
     @power_mode.setter
-    def power_mode(self, mode):
+    def power_mode(self, mode: int) -> None:
         # see datasheet table 7.3
         if not mode in (
             GUVXI2C_PMODE_NORMAL,
@@ -152,7 +158,7 @@ class GUVX_I2C:
         self._pmode = mode
 
     @property
-    def measure_period(self):
+    def measure_period(self) -> int:
         """One of four measuring periods in milliseconds:
 
         100, 200, 400 or 800ms
@@ -160,14 +166,14 @@ class GUVX_I2C:
         return _measure_periods[self._period]
 
     @measure_period.setter
-    def measure_period(self, period):
+    def measure_period(self, period: int) -> None:
         # see datasheet table 7.4
         if not period in _measure_periods:
             raise RuntimeError("Invalid period: must be 100, 200, 400 or 800 (ms)")
         self._period = _measure_periods.index(period)
 
     @property
-    def sleep_duration(self):
+    def sleep_duration(self) -> int:
         """Sleep duration in low power mode, can be:
 
         2, 4, 8, 16, 32, 64, 128, or 256 times
@@ -175,7 +181,7 @@ class GUVX_I2C:
         return _sleep_durations[self._sleep_duration]
 
     @sleep_duration.setter
-    def sleep_duration(self, duration):
+    def sleep_duration(self, duration: int) -> None:
         # see datasheet table 7.7
         if not duration in _sleep_durations:
             raise RuntimeError(
@@ -188,12 +194,12 @@ class GUVB_C31SM(GUVX_I2C):
     """Driver for the GUVB-C31SM sensor"""
 
     @property
-    def range(self):
+    def range(self) -> int:
         """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""
         return _measure_ranges[self._range_uvb]
 
     @range.setter
-    def range(self, multiple):
+    def range(self, multiple: int) -> None:
         # see datasheet table 7.6
         if not multiple in _measure_ranges:
             raise RuntimeError(
@@ -202,12 +208,12 @@ class GUVB_C31SM(GUVX_I2C):
         self._range_uvb = _measure_ranges.index(multiple)
 
     @property
-    def uvb(self):
+    def uvb(self) -> int:
         """The raw UV B 16-bit data"""
         return self._uvb
 
     @property
-    def uv_index(self):
+    def uv_index(self) -> float:
         """Calculated using offset and b-scale"""
         # GUVB-C31SM UVI = (B value *0.8 )/(B_scale) in app note
         return (self.uvb / self.range * 0.8) / self._scale
@@ -220,12 +226,12 @@ class GUVA_C32SM(GUVX_I2C):
     """
 
     @property
-    def range(self):
+    def range(self) -> int:
         """UVB range, can be: 1, 2, 4, 8, 16, 32, 64, or 128 times"""
         return _measure_ranges[self._range_uva]
 
     @range.setter
-    def range(self, multiple):
+    def range(self, multiple: int) -> None:
         # see datasheet table 7.6
         if not multiple in _measure_ranges:
             raise RuntimeError(
@@ -234,12 +240,12 @@ class GUVA_C32SM(GUVX_I2C):
         self._range_uva = _measure_ranges.index(multiple)
 
     @property
-    def uva(self):
+    def uva(self) -> int:
         """The raw UV A 16-bit data"""
         return self._uva
 
     @property
-    def uv_index(self):
+    def uv_index(self) -> float:
         """Calculated using offset and b-scale"""
         # GUVA-C32SM UVI = (A value * 2.5 - self._offset )/(A_scale)
         # in app note
