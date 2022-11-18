@@ -9,6 +9,7 @@ import adafruit_guvx_i2c
 
 
 i2c = board.I2C()  # uses board.SCL and board.SDA
+# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
 
 debug_i2c = DebugI2C(i2c)
 
