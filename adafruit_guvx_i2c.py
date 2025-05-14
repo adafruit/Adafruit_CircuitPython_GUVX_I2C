@@ -28,13 +28,15 @@ Implementation Notes
 """
 
 import time
-from micropython import const
+
 from adafruit_bus_device import i2c_device
-from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
 from adafruit_register.i2c_bits import RWBits
+from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
+from micropython import const
 
 try:
-    import typing  # pylint: disable=unused-import
+    import typing
+
     from busio import I2C
 except ImportError:
     pass
@@ -75,7 +77,6 @@ _measure_ranges = (1, 2, 4, 8, 16, 32, 64, 128)
 _sleep_durations = (2, 4, 8, 16, 32, 64, 128, 256)
 
 
-# pylint: disable=too-many-instance-attributes
 class GUVX_I2C:
     """Base driver for the GUVA or GUVB I2C UV light sensor.
 
@@ -98,7 +99,6 @@ class GUVX_I2C:
     _uva = ROUnaryStruct(_GUVXI2C_REG_UVALSB, "<H")
 
     def __init__(self, i2c_bus: I2C, address: int = _GUVXI2C_I2CADDR_DEFAULT) -> None:
-        # pylint: disable=no-member
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
         if self._chip_id != _GUVXI2C_CHIP_ID:
             raise RuntimeError("Failed to find GUVX I2C sensor - check your wiring!")
@@ -148,12 +148,12 @@ class GUVX_I2C:
     @power_mode.setter
     def power_mode(self, mode: int) -> None:
         # see datasheet table 7.3
-        if not mode in (
+        if mode not in {
             GUVXI2C_PMODE_NORMAL,
             GUVXI2C_PMODE_LOWPOWER,
             GUVXI2C_PMODE_AUTOSHUT,
             GUVXI2C_PMODE_SHUTDOWN,
-        ):
+        }:
             raise RuntimeError("Invalid power mode")
         self._pmode = mode
 
@@ -168,7 +168,7 @@ class GUVX_I2C:
     @measure_period.setter
     def measure_period(self, period: int) -> None:
         # see datasheet table 7.4
-        if not period in _measure_periods:
+        if period not in _measure_periods:
             raise RuntimeError("Invalid period: must be 100, 200, 400 or 800 (ms)")
         self._period = _measure_periods.index(period)
 
@@ -183,10 +183,8 @@ class GUVX_I2C:
     @sleep_duration.setter
     def sleep_duration(self, duration: int) -> None:
         # see datasheet table 7.7
-        if not duration in _sleep_durations:
-            raise RuntimeError(
-                "Invalid range: must be 2, 4, 8, 16, 32, 64, 128 or 256 x"
-            )
+        if duration not in _sleep_durations:
+            raise RuntimeError("Invalid range: must be 2, 4, 8, 16, 32, 64, 128 or 256 x")
         self._sleep_duration = _sleep_durations.index(duration)
 
 
@@ -201,10 +199,8 @@ class GUVB_C31SM(GUVX_I2C):
     @range.setter
     def range(self, multiple: int) -> None:
         # see datasheet table 7.6
-        if not multiple in _measure_ranges:
-            raise RuntimeError(
-                "Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x"
-            )
+        if multiple not in _measure_ranges:
+            raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
         self._range_uvb = _measure_ranges.index(multiple)
 
     @property
@@ -233,10 +229,8 @@ class GUVA_C32SM(GUVX_I2C):
     @range.setter
     def range(self, multiple: int) -> None:
         # see datasheet table 7.6
-        if not multiple in _measure_ranges:
-            raise RuntimeError(
-                "Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x"
-            )
+        if multiple not in _measure_ranges:
+            raise RuntimeError("Invalid range: must be 1, 2, 4, 8, 16, 32, 64, or 128 x")
         self._range_uva = _measure_ranges.index(multiple)
 
     @property
